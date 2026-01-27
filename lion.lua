@@ -142,7 +142,7 @@ end
 参数 str 要检查的字符串
 返回 boolen
 ]]
-function lion.checkUnlawwedString(str)
+function lion.checkUnlawfulString(str)
     if str == nil then
         return false
     end
@@ -257,18 +257,18 @@ end
 参数 args 要检查的table
 返回 boolen
 ]]
-function lion.checkTableUnlawwedString(args)
+function lion.checkTableUnlawfulString(args)
     if args == nil or type(args) ~= "table" then
-        return lion.checkUnlawwedString(args)
+        return lion.checkUnlawfulString(args)
     end
     for k, v in pairs(args) do
         if type(v) == "table" then
-            local res = lion.checkTableUnlawwedString(v)
+            local res = lion.checkTableUnlawfulString(v)
             if res == false then
                 return false
             end
         else
-            local res = lion.checkUnlawwedString(v)
+            local res = lion.checkUnlawfulString(v)
             if res == false then
                 return false
             end
@@ -487,14 +487,19 @@ end
 
 --[[
 遍历删除表中元素
-参数 table 表
+参数 tab 表
+参数 removeValues 需要删除的值的表
 返回 无
 ]]
-function lion.tableRemoveAll(table)
+function lion.tableRemoveAll(tab, removeValues)
+    if not tab or type(tab) ~= "table" then
+        return
+    end
+    removeValues = removeValues or {}
     local i = 1
-    while i <= #table do
-        if remove[table[i]] then
-            table.remove(table, i)
+    while i <= #tab do
+        if removeValues[tab[i]] then
+            table.remove(tab, i)
         else
             i = i + 1
         end
@@ -504,11 +509,16 @@ end
 --[[
 创建微信签名
 参数 args 签名参数表
+参数 key 密钥
 返回 微信签名
 ]]
-function lion.makeWxSign(args)
+function lion.makeWxSign(args, key)
     if type(args) ~= "table" then
         print("makeWxSign args is nil", args)
+        return ""
+    end
+    if not key then
+        print("makeWxSign key is nil")
         return ""
     end
     --Key排序
@@ -530,8 +540,12 @@ function lion.makeWxSign(args)
     end
     sign = lion.cutStringLast(sign)
 
-    sign = sign .. "&key=" .. hs.WeiXinRedPaperKey
+    sign = sign .. "&key=" .. key
 
+    if not md5 or not md5.sumhexa then
+        print("makeWxSign md5 not available")
+        return ""
+    end
     sign = md5.sumhexa(sign)
     sign = string.upper(sign)
     return sign
@@ -813,7 +827,7 @@ end
 function lion.deleteEmojiFromString(str)
     str = tostring(str)
     local newStr = ""
-    local tab = lion.string2Table(str)
+    local tab = lion.convertStringToTable(str)
     for k, v in pairs(tab) do
         if lion.hasEmoji(v) == false then
             newStr = newStr .. tostring(v)
@@ -942,7 +956,7 @@ end
 返回 转换后的字符串
 ]]
 function lion.convertStringToArray(str, separator)
-    return lion.splitString(str, separator)
+    return lion.stringSplit(str, separator)
 end
 
 --[[
@@ -1012,7 +1026,7 @@ function lion.getIpAddressInfo(ipAddress)
         return { ip = "", port = 0 }
     end
 
-    local info = lion.splitString(ipAddress, ":")
+    local info = lion.stringSplit(ipAddress, ":")
     if #info ~= 2 then
         print("getIpAddressInfo addr err", ipAddress)
         return { ip = "", port = 0 }
@@ -1099,8 +1113,8 @@ function lion.compareTime(time1, time2)
         return 0
     end
 
-    time1 = lion.date2Sec(time1)
-    time2 = lion.date2Sec(time2)
+    time1 = lion.dateToSec(time1)
+    time2 = lion.dateToSec(time2)
 
     local val = time1 - time2
     return val
@@ -1118,9 +1132,9 @@ function lion.ifTimeInZone(time, startTime, endTime)
         print("ifTimeInZone args is nil", time, startTime, endTime)
         return false
     end
-    time = lion.date2Sec(time)
-    startTime = lion.date2Sec(startTime)
-    endTime = lion.date2Sec(endTime)
+    time = lion.dateToSec(time)
+    startTime = lion.dateToSec(startTime)
+    endTime = lion.dateToSec(endTime)
 
     if startTime > endTime then
         print("ifTimeInZone : startTime is bigger than endTime", time, startTime, endTime)
@@ -1134,13 +1148,23 @@ function lion.ifTimeInZone(time, startTime, endTime)
 end
 
 --[[
+秒数转为日期时间字符串
+second int 秒数
+返回值 string 日期时间字符串
+]]
+function lion.secToDate(second)
+    second = second or os.time()
+    return os.date("%Y-%m-%d %H:%M:%S", second)
+end
+
+--[[
 指定日期转为秒数
 date string YYYY-mm-dd HH:MM::SS
 返回值int 秒数
 ]]
-function lion.date2Sec(date)
+function lion.dateToSec(date)
     if date == nil then
-        date = lion.sec2Date()
+        date = lion.secToDate()
     end
 
     local function split(str, pat)
@@ -1173,17 +1197,17 @@ end
 --[[
 stringTime string YYYY-mm-dd HH:MM:SS
 ]]
-function lion.stringTime2DateTime(stringTime)
+function lion.stringTimeToDateTime(stringTime)
     local Y = 0
     local m = 0
     local d = 0
     local H = 0
     local M = 0
     local S = 0
-    stringTime = lion.splitString(stringTime, " ")
+    stringTime = lion.stringSplit(stringTime, " ")
     if #stringTime == 2 then
-        local date = lion.splitString(stringTime[1], "-")
-        local time = lion.splitString(stringTime[2], ":")
+        local date = lion.stringSplit(stringTime[1], "-")
+        local time = lion.stringSplit(stringTime[2], ":")
         Y = date[1]
         m = date[2]
         d = date[3]
@@ -1192,9 +1216,9 @@ function lion.stringTime2DateTime(stringTime)
         S = time[3]
     end
     if #stringTime == 1 then
-        stringTime = lion.splitString(stringTime[1], "-")
+        stringTime = lion.stringSplit(stringTime[1], "-")
         if #stringTime == 1 then
-            local time = lion.splitString(stringTime[1], ":")
+            local time = lion.stringSplit(stringTime[1], ":")
             H = time[1]
             M = time[2]
             S = time[3]
@@ -1211,15 +1235,15 @@ end
 --[[
 second int 秒
 ]]
-function lion.sec2DateTime(second)
-    second = lion.sec2Date(second)
-    return lion.stringTime2DateTime(second)
+function lion.secToDateTime(second)
+    second = lion.secToDate(second)
+    return lion.stringTimeToDateTime(second)
 end
 
 --[[
 dateTime {year,month,day,hour,minute,second}
 ]]
-function lion.dateTime2StringTime(dateTime)
+function lion.dateTimeToStringTime(dateTime)
     local year = dateTime.year or "0000"
     local month = dateTime.month or "00"
     local day = dateTime.day or "00"
@@ -1233,8 +1257,10 @@ end
 
 --[[
 数字转 bool
+参数 num 数字
+返回值 bool值
 ]]
-function lion.num2bool(num)
+function lion.numToBool(num)
     num = math.floor(tonumber(num))
     if num == 0 then
         return false
@@ -1244,8 +1270,10 @@ end
 
 --[[
 字符串转bool
+参数 str 字符串
+返回值 bool值
 ]]
-function lion.string2bool(str)
+function lion.stringToBool(str)
     if str == "true" then
         return true
     end
@@ -1254,8 +1282,10 @@ end
 
 --[[
 redis 表转 lua 表
+参数 res redis 返回的表
+返回值 转换后的 lua 表
 ]]
-function lion.redisTable2LuaTable(res)
+function lion.redisTableToLuaTable(res)
     if #res > 0 then
         local rtab = {}
         if #res % 2 ~= 0 then
@@ -1273,8 +1303,10 @@ end
 
 --[[
 redis 二维表转 lua 二维表
+参数 res redis 返回的二维表
+返回值 转换后的 lua 二维表
 ]]
-function lion.redisTable2LuaTable2(res)
+function lion.redisTableToLuaTable2(res)
     if #res > 0 then
         local list = {}
         if #res % 2 ~= 0 then
@@ -1297,9 +1329,11 @@ function lion.redisTable2LuaTable2(res)
 end
 
 --[[
-安全数字
+安全数字转换
+参数 str 要转换的字符串
+返回值 转换后的数字或原始字符串
 ]]
-function lion.safe2Num(str)
+function lion.safeToNum(str)
     if tonumber(str) == nil then
         return str
     end
@@ -1308,18 +1342,20 @@ end
 
 --[[
 表转数字
+参数 tab 要转换的表
+返回值 转换后的表
 ]]
-function lion.safeTable2Num(tab)
+function lion.safeTableToNum(tab)
     if tab == nil or type(tab) ~= "table" then
-        print("safeTable2Num : nil table", tab)
+        print("safeTableToNum : nil table", tab)
         return
     end
     local count = 0
     for k, v in pairs(tab) do
         if type(v) == "table" then
-            lion.safeTable2Num(v)
+            lion.safeTableToNum(v)
         else
-            tab[k] = lion.safe2Num(v)
+            tab[k] = lion.safeToNum(v)
         end
         count = count + 1
     end
@@ -1352,22 +1388,6 @@ function lion.removeFromTable(src, vals)
     end
 
     return res
-end
-
---[[
-skynet 定期清理内存，h.cleanMemFlag 是开关
-]]
-function lion.cleanMem(log)
-    if h.cleanMemFlag == false then
-        return
-    end
-    skynet.fork(function()
-        while true do
-            skynet.sleep(h.cleanMemSleepTime * 100)
-            pcall(skynet.send, skynet.self(), "debug", "GC")
-            --print(log," free mem per"..tostring(h.cleanMemSleepTime).."s")
-        end
-    end)
 end
 
 --[[
@@ -1466,7 +1486,7 @@ end
 --[[
 字符串与16进制互转
 ]]
-function lion.bin2hex(s)
+function lion.binToHex(s)
     s = string.gsub(s, "(.)", function(x)
         return string.format("%02x", string.byte(x))
     end)
@@ -1476,7 +1496,7 @@ end
 --[[
 
 ]]
-function lion.hex2bin(hexstr)
+function lion.hexToBin(hexstr)
     local h2b = {
         ["0"] = 0,
         ["1"] = 1,
@@ -1505,7 +1525,7 @@ end
 --[[
 将字符串按格式转为16进制串
 ]]
-function lion.str2hex(hex)
+function lion.strToHex(hex)
     --判断输入类型
     if (type(hex) ~= "string") then
         return nil, "str2hex invalid input type"
@@ -1523,7 +1543,7 @@ end
 --[[
 将16进制串转换为字符串
 ]]
-function lion.hex2str(str)
+function lion.hexToStr(str)
     --判断输入类型
     if (type(str) ~= "string") then
         print("hex2str invalid input type")
@@ -1553,8 +1573,10 @@ end
 
 --[[
 table转xml
+参数 tab 表
+返回值 xml字符串
 ]]
-function lion.table2Xml(tab)
+function lion.tableToXml(tab)
     local function table_to_xml_table(old_table, new_table)
         for key, value in pairs(old_table) do
             if "table" == type(value) then
@@ -1589,9 +1611,9 @@ end
 --tab：table 表
 --返回值： stringjson字符串
 ]]
-function lion.table2Json(tab)
+function lion.tableToJson(tab)
     if tab == nil or type(tab) ~= "table" then
-        print("table2Json : tab is nil", tab, type(tab))
+        print("tableToJson : tab is nil", tab, type(tab))
         return ""
     end
 
@@ -1604,7 +1626,9 @@ function lion.table2Json(tab)
 end
 
 --[[
-
+使用cjson编码表
+参数 tab 表
+返回值 json字符串
 ]]
 function lion.cjsonEncode(tab)
     if tab == nil or type(tab) ~= "table" then
@@ -1625,9 +1649,9 @@ json字符串转表
 text：string json字符串
 返回值： table表
 ]]
-function lion.json2Table(text)
+function lion.jsonToTable(text)
     if text == nil then
-        print("json2Table : text is nil", text, type(text))
+        print("jsonToTable : text is nil", text, type(text))
         return {}
     end
 
@@ -1641,11 +1665,13 @@ function lion.json2Table(text)
 end
 
 --[[
-
+使用cjson解码json字符串
+参数 text json字符串
+返回值 表
 ]]
 function lion.cjsonDecode(text)
     if text == nil then
-        print("json2Table : text is nil", text, type(text))
+        print("cjsonDecode : text is nil", text, type(text))
         return {}
     end
 
@@ -1663,9 +1689,9 @@ xml字符串转表
 text：string xml字符串
 返回值： table表
 ]]
-function lion.xml2Table(text)
+function lion.xmlToTable(text)
     if text == nil then
-        print("xml2Table : text is nil", text, type(text))
+        print("xmlToTable : text is nil", text, type(text))
         return {}
     end
 
@@ -1688,14 +1714,12 @@ function lion.isSuccess(successRate)
         return false
     end
 
-    math.randomseed(os.time())
-
+    -- 确保成功率在 0-100 范围内
+    successRate = math.max(0, math.min(100, successRate))
     successRate = math.floor(successRate)
+    
     local res = math.random(1, 100)
-    if res <= successRate then
-        return true
-    end
-    return false
+    return res <= successRate
 end
 
 --[[
@@ -1705,8 +1729,8 @@ end
 return bool
 ]]
 function lion.isSameDay(time1, time2)
-    time1 = lion.date2Sec(os.date("%Y-%m-%d 00:00:00", lion.date2Sec(time1)))
-    time2 = lion.date2Sec(os.date("%Y-%m-%d 00:00:00", lion.date2Sec(time2)))
+    time1 = lion.dateToSec(os.date("%Y-%m-%d 00:00:00", lion.dateToSec(time1)))
+    time2 = lion.dateToSec(os.date("%Y-%m-%d 00:00:00", lion.dateToSec(time2)))
     if time1 == time2 then
         return true
     end
@@ -1736,12 +1760,14 @@ end
 
 --[[
 table 转 url 字符串
-tabstring 表
-返回值： stringurl字符串
+参数 tab 表
+参数 split 分隔符
+参数 symbol 连接符
+返回值： url字符串
 ]]
-function lion.table2Url(tab, split, symbol)
+function lion.tableToUrl(tab, split, symbol)
     if tab == nil or type(tab) ~= "table" then
-        print("table2Url args is nil", tab)
+        print("tableToUrl args is nil", tab)
         return ""
     end
 
@@ -1764,38 +1790,38 @@ end
 
 --[[
 url字符串转表
-urlstring url字符串
+参数 url url字符串
 返回值： table表
 ]]
-function lion.url2Table(url)
+function lion.urlToTable(url)
     if url == "" or url == nil then
         return {}
     end
     local t1 = nil
     --,
-    t1 = lion.splitString(url, ',')
+    t1 = lion.stringSplit(url, ',')
 
     --?
     url = t1[1]
-    t1 = lion.splitString(t1[1], '?')
+    t1 = lion.stringSplit(t1[1], '?')
 
     url = t1[2]
     --&
 
-    t1 = lion.splitString(t1[2], '&')
+    t1 = lion.stringSplit(t1[2], '&')
     local res = {}
     for k, v in pairs(t1) do
-        local i = 1
-        t1 = lion.splitString(v, '=')
-        res[t1[1]] = {}
-        res[t1[1]] = t1[2]
-        i = i + 1
+        local t2 = lion.stringSplit(v, '=')
+        res[t2[1]] = t2[2]
     end
     return res
 end
 
 --[[
-
+查找字符串
+参数 str 原字符串
+参数 findStr 要查找的字符串
+返回值 bool 是否找到
 ]]
 function lion.findString(str, findStr)
     if lion.isStringEmpty(str) == true or lion.isStringEmpty(findStr) == true then
@@ -1814,18 +1840,18 @@ url字符串转表
 urlstring url字符串
 返回值： table表
 ]]
-function lion.urlParam2Table(url, split, symbol)
+function lion.urlParamToTable(url, split, symbol)
     if url == "" or url == nil then
         return {}
     end
 
     split = split or "&"
     symbol = symbol or "="
-    local t1 = lion.splitString(url, split)
+    local t1 = lion.stringSplit(url, split)
     local res = {}
     for k, v in pairs(t1) do
         i = 1
-        t1 = lion.splitString(v, symbol)
+        t1 = lion.stringSplit(v, symbol)
         res[t1[1]] = {}
         res[t1[1]] = t1[2]
         i = i + 1
@@ -1838,13 +1864,13 @@ url字符串转表
 urlstring url字符串
 返回值： table表
 ]]
-function lion.urlParam2Table2Num(url)
-    local tab = lion.urlParam2Table(url)
+function lion.urlParamToTableToNum(url)
+    local tab = lion.urlParamToTable(url)
     local res = {}
     for k, v in pairs(tab) do
-        k = math.floor(tonumber(k))
-        v = math.floor(tonumber(v))
-        res[k] = v
+        local new_k = math.floor(tonumber(k))
+        local new_v = math.floor(tonumber(v))
+        res[new_k] = new_v
     end
 
     return res
@@ -1855,12 +1881,12 @@ url字符串转itemStruct
 urlstring url字符串
 返回值： table表
 ]]
-function lion.urlParam2ItemStruct(url)
+function lion.urlParamToItemStruct(url)
     if url == "" or url == nil then
         return {}
     end
 
-    url = lion.urlParam2Table(url)
+    url = lion.urlParamToTable(url)
     local res = {}
     for k, v in pairs(url) do
         table.insert(res, { itemId = tonumber(k), num = tonumber(v) })
@@ -1871,6 +1897,8 @@ end
 
 --[[
 字符串是否为空
+参数 str 字符串
+返回值 bool 是否为空
 ]]
 function lion.isStringEmpty(str)
     if str == "" or str == nil then
@@ -1881,7 +1909,25 @@ function lion.isStringEmpty(str)
 end
 
 --[[
+计算表中元素个数
+参数 tab 表
+返回值 元素个数
+]]
+function lion.countTable(tab)
+    if tab == nil or type(tab) ~= "table" then
+        return 0
+    end
+    local count = 0
+    for k, v in pairs(tab) do
+        count = count + 1
+    end
+    return count
+end
+
+--[[
 table是否为空
+参数 tab 表
+返回值 bool 是否为空
 ]]
 function lion.isTableEmpty(tab)
     if tab == nil or type(tab) ~= "table" then
@@ -1897,6 +1943,9 @@ end
 
 --[[
 table中是否包含某个值
+参数 list 表
+参数 value 要查找的值
+返回值 bool 是否包含
 ]]
 function lion.isExistsInTable(list, value)
     if type(list) ~= "table" then
@@ -1915,6 +1964,8 @@ end
 
 --[[
 转整形
+参数 val 值
+返回值 整数
 ]]
 function lion.toInt(val)
     if val == nil or tonumber(val) == nil then
@@ -1926,6 +1977,8 @@ end
 
 --[[
 判断是否是数字
+参数 num 值
+返回值 bool 是否是数字
 ]]
 function lion.isNumber(num)
     if tonumber(num) == nil then
@@ -1938,7 +1991,7 @@ end
 --[[
 生成sql插入语句
 ]]
-function lion.createInsertSql(tableName, argsTable)
+function lion.createInsertSQL(tableName, argsTable)
     local sql = string.format("insert into %s(", tableName)
     for k, v in pairs(argsTable) do
         sql = string.format(sql .. "%s,", k)
@@ -1960,7 +2013,7 @@ end
 生成sql更新语句
 whereTable table and条件
 ]]
-function lion.createUpdateSql(tableName, argsTable, whereTable)
+function lion.createUpdateSQL(tableName, argsTable, whereTable)
     local sql = string.format("update %s set ", tableName)
     for k, v in pairs(argsTable) do
         sql = string.format(sql .. "%s='%s',", k, v)
@@ -1981,7 +2034,7 @@ end
 set string age=10,sex=1
 where string where userID=1 limit 1
 ]]
-function lion.createFullUpdateSql(tableName, set, where)
+function lion.createFullUpdateSQL(tableName, set, where)
     if lion.isStringEmpty(tableName) == true or lion.isStringEmpty(where) == true or
         lion.isStringEmpty(set) == true then
         return nil
@@ -1995,7 +2048,7 @@ end
 --[[
 生成sql删除语句
 ]]
-function lion.createDeleteSql(tableName, whereTable)
+function lion.createDeleteSQL(tableName, whereTable)
     local sql = string.format("delete from %s ", tableName)
     sql = sql .. " where "
     for k, v in pairs(whereTable) do
@@ -2012,7 +2065,7 @@ end
 fileds string * aaa,bbb,ccc
 whereTable 条件，没有传nil,否则传key=value的表 {name="aa",age=10} and条件
 ]]
-function lion.createSelectSql(tableName, fileds, whereTable)
+function lion.createSelectSQL(tableName, fileds, whereTable)
     local sql = string.format("select %s from %s ", fileds, tableName)
     if whereTable == nil or lion.countTable(whereTable) == 0 then
         return sql
@@ -2031,7 +2084,7 @@ end
 fileds string * aaa,bbb,ccc
 wherestringwhere userID=123 and userName='aaa' limit 1
 ]]
-function lion.createFullSelectSql(tableName, fileds, where)
+function lion.createFullSelectSQL(tableName, fileds, where)
     local sql = string.format("select %s from %s ", fileds, tableName)
     if lion.isStringEmpty(where) == true then
         return sql
@@ -2043,7 +2096,7 @@ end
 --[[
 生成sql替换语句
 ]]
-function lion.createReplaceSql(tableName, argsTable)
+function lion.createReplaceSQL(tableName, argsTable)
     local sql = string.format("replace into %s(", tableName)
     for k, v in pairs(argsTable) do
         sql = string.format(sql .. "%s,", k)
@@ -2061,53 +2114,8 @@ function lion.createReplaceSql(tableName, argsTable)
     return sql
 end
 
---[[
-解析Json文件
-json： stringjson字符串
-返回值： table/nil 解析后的结果
-]]
-function lion.DecodeLKJson(json)
-    if json == nil or json == "" then
-        print("json is nil")
-        return nil, { RetCode = "", RetMsg = "" }
-    end
 
-    local js = require("glzp.json")
-    local val = js.decode(json)
 
-    if val == "" or val == nil or type(val) ~= "table" then
-        print("DecodeLKJson : decode json fail", tostring(val.RetCode), val.RetMsg)
-        return nil, { RetCode = "", RetMsg = "" }
-    end
-
-    if val.RetCode ~= nil and tostring(val.RetCode) ~= "0" then
-        print("DecodeLKJson ： ERROR", tostring(val.RetCode), val.RetMsg)
-        return nil, { RetCode = tostring(val.RetCode), RetMsg = val.RetMsg }
-    end
-
-    return val, { RetCode = "", RetMsg = "" }
-end
-
---[[
-
-]]
-function lion.decodeLkJsonTable(lktable)
-    if lktable == nil then
-        return nil
-    end
-    local res = {}
-    res.userName = lktable.Account
-    res.nickName = lktable.NickName
-    res.sexID = tonumber(lktable.Gender)
-    res.KGoldCoin = tonumber(lktable.Treasure)
-    res.KCoin = tonumber(lktable.KCoin)
-    res.kGoldCoin = tonumber(lktable.Treasure)
-    res.kCoin = tonumber(lktable.KCoin)
-    res.lkGoldCoin = tonumber(lktable.Treasure)
-    res.userID = tonumber(lktable.UserID)
-    res.spreader = lktable.Spreader
-    return res
-end
 
 --[[
 判断与今天是否相隔超过1天
@@ -2119,7 +2127,7 @@ function lion.overOneDay(date)
     local nowD = os.date("%d", os.time())
 
     --解析记录中的日期时间
-    local lastDate = lion.splitString(date, "-")
+    local lastDate = lion.stringSplit(date, "-")
     if lastDate == "" or lastDate == nil then
         return false
     end
@@ -2253,7 +2261,6 @@ function lion.writeLog(fileName, ...)
     local f = io.open(path, "a+")
     if f then
         local logHead = "\n"
-        --logHead = logHead .. "[".. skynet.getenv("name") .."]"..lion.getTime()
         f:write(logHead, ...)
         f:close()
     end
@@ -2414,7 +2421,7 @@ function lion.getFakeRandomUserCode(userID)
         bit.data[i] = 2 ^ (bitlen - i)
     end
 
-    function bit:d2b(arg)
+    function bit:dToB(arg)
         local tr = {}
         for i = 1, bitlen do
             if arg >= self.data[i] then
@@ -2425,9 +2432,9 @@ function lion.getFakeRandomUserCode(userID)
             end
         end
         return tr
-    end --bit:d2b
+    end --bit:dToB
 
-    function bit:b2d(arg)
+    function bit:bToD(arg)
         local nr = 0
         for i = 1, bitlen do
             if arg[i] == 1 then
@@ -2435,11 +2442,11 @@ function lion.getFakeRandomUserCode(userID)
             end
         end
         return nr
-    end --bit:b2d
+    end --bit:bToD
 
     function bit:_xor(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2449,12 +2456,12 @@ function lion.getFakeRandomUserCode(userID)
                 r[i] = 1
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:xor
 
     function bit:_and(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2464,13 +2471,13 @@ function lion.getFakeRandomUserCode(userID)
                 r[i] = 0
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
 
     end --bit:_and
 
     function bit:_or(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2480,11 +2487,11 @@ function lion.getFakeRandomUserCode(userID)
                 r[i] = 0
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_or
 
     function bit:_not(a)
-        local op1 = self:d2b(a)
+        local op1 = self:dToB(a)
         local r = {}
 
         for i = 1, bitlen do
@@ -2494,12 +2501,12 @@ function lion.getFakeRandomUserCode(userID)
                 r[i] = 1
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_not
 
     function bit:_rshift(a, n)
-        local op1 = self:d2b(a)
-        local r = self:d2b(0)
+        local op1 = self:dToB(a)
+        local r = self:dToB(0)
 
         if n < bitlen and n > 0 then
             for i = 1, n do
@@ -2510,12 +2517,12 @@ function lion.getFakeRandomUserCode(userID)
             end
             r = op1
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_rshift
 
     function bit:_lshift(a, n)
-        local op1 = self:d2b(a)
-        local r = self:d2b(0)
+        local op1 = self:dToB(a)
+        local r = self:dToB(0)
 
         if n < bitlen and n > 0 then
             for i = 1, n do
@@ -2526,7 +2533,7 @@ function lion.getFakeRandomUserCode(userID)
             end
             r = op1
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_lshift
 
     function bit:print(ta)
@@ -2556,9 +2563,9 @@ function lion.getFakeRandomUserCode(userID)
         return tmp
     end
 
-    local bs = bit:d2b(tonumber(userID))
+    local bs = bit:dToB(tonumber(userID))
     local arr = bit:reverseTable(bs)
-    return math.floor(tonumber(bit:b2d(arr)) + 10000000) --凑齐8为数
+    return math.floor(tonumber(bit:bToD(arr)) + 10000000) --凑齐8为数
 end
 
 --[[
@@ -2571,7 +2578,7 @@ function lion.getUserIDByCode(code)
         bit.data[i] = 2 ^ (bitlen - i)
     end
 
-    function bit:d2b(arg)
+    function bit:dToB(arg)
         local tr = {}
         for i = 1, bitlen do
             if arg >= self.data[i] then
@@ -2582,9 +2589,9 @@ function lion.getUserIDByCode(code)
             end
         end
         return tr
-    end --bit:d2b
+    end --bit:dToB
 
-    function bit:b2d(arg)
+    function bit:bToD(arg)
         local nr = 0
         for i = 1, bitlen do
             if arg[i] == 1 then
@@ -2592,11 +2599,11 @@ function lion.getUserIDByCode(code)
             end
         end
         return nr
-    end --bit:b2d
+    end --bit:bToD
 
     function bit:_xor(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2606,12 +2613,12 @@ function lion.getUserIDByCode(code)
                 r[i] = 1
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:xor
 
     function bit:_and(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2621,13 +2628,13 @@ function lion.getUserIDByCode(code)
                 r[i] = 0
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
 
     end --bit:_and
 
     function bit:_or(a, b)
-        local op1 = self:d2b(a)
-        local op2 = self:d2b(b)
+        local op1 = self:dToB(a)
+        local op2 = self:dToB(b)
         local r = {}
 
         for i = 1, bitlen do
@@ -2637,11 +2644,11 @@ function lion.getUserIDByCode(code)
                 r[i] = 0
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_or
 
     function bit:_not(a)
-        local op1 = self:d2b(a)
+        local op1 = self:dToB(a)
         local r = {}
 
         for i = 1, bitlen do
@@ -2651,12 +2658,12 @@ function lion.getUserIDByCode(code)
                 r[i] = 1
             end
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_not
 
     function bit:_rshift(a, n)
-        local op1 = self:d2b(a)
-        local r = self:d2b(0)
+        local op1 = self:dToB(a)
+        local r = self:dToB(0)
 
         if n < bitlen and n > 0 then
             for i = 1, n do
@@ -2667,12 +2674,12 @@ function lion.getUserIDByCode(code)
             end
             r = op1
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_rshift
 
     function bit:_lshift(a, n)
-        local op1 = self:d2b(a)
-        local r = self:d2b(0)
+        local op1 = self:dToB(a)
+        local r = self:dToB(0)
 
         if n < bitlen and n > 0 then
             for i = 1, n do
@@ -2683,7 +2690,7 @@ function lion.getUserIDByCode(code)
             end
             r = op1
         end
-        return self:b2d(r)
+        return self:bToD(r)
     end --bit:_lshift
 
     function bit:print(ta)
@@ -2713,9 +2720,9 @@ function lion.getUserIDByCode(code)
         return tmp
     end
 
-    local bs = bit:d2b(tonumber(code - 10000000))
+    local bs = bit:dToB(tonumber(code - 10000000))
     local arr = bit:reverseTable(bs)
-    return math.floor(tonumber(bit:b2d(arr)))
+    return math.floor(tonumber(bit:bToD(arr)))
 end
 
 --[[
