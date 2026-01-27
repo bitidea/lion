@@ -132,7 +132,7 @@ test_case("checkUnlawfulString - 包含非法字符", function()
 end)
 
 test_case("checkTableUnlawfulString - 合法表", function()
-    local result = lion.checkTableUnlawfulString({a = "test", b = "value"})
+    local result = lion.checkTableUnlawfulString({ a = "test", b = "value" })
     assert_true(result, "checkTableUnlawfulString 合法表")
 end)
 
@@ -169,20 +169,20 @@ end)
 -- 7. 表操作测试
 print("\n7. 表操作测试")
 test_case("tableRemoveAll - 正常删除", function()
-    local tab = {1, 2, 3, 2, 4, 1}
-    lion.tableRemoveAll(tab, {[1] = true, [2] = true})
+    local tab = { 1, 2, 3, 2, 4, 1 }
+    lion.tableRemoveAll(tab, { [1] = true, [2] = true })
     assert_equal(#tab, 2, "tableRemoveAll 删除后长度")
     assert_equal(tab[1], 3, "tableRemoveAll 第一个元素")
 end)
 
 test_case("tableDuplicate - 去重", function()
-    local tab = {1, 2, 3, 2, 4, 1}
+    local tab = { 1, 2, 3, 2, 4, 1 }
     local result = lion.tableDuplicate(tab)
     assert_equal(#result, 4, "tableDuplicate 去重后长度")
 end)
 
 test_case("countTable - 计算元素个数", function()
-    local tab = {a = 1, b = 2, c = 3}
+    local tab = { a = 1, b = 2, c = 3 }
     local result = lion.countTable(tab)
     assert_equal(result, 3, "countTable 元素个数")
 end)
@@ -193,32 +193,32 @@ test_case("isTableEmpty - 空表", function()
 end)
 
 test_case("isTableEmpty - 非空表", function()
-    local result = lion.isTableEmpty({a = 1})
+    local result = lion.isTableEmpty({ a = 1 })
     assert_false(result, "isTableEmpty 非空表")
 end)
 
 test_case("isExistsInTable - 包含值", function()
-    local result = lion.isExistsInTable({1, 2, 3}, 2)
+    local result = lion.isExistsInTable({ 1, 2, 3 }, 2)
     assert_true(result, "isExistsInTable 包含值")
 end)
 
 test_case("isExistsInTable - 不包含值", function()
-    local result = lion.isExistsInTable({1, 2, 3}, 4)
+    local result = lion.isExistsInTable({ 1, 2, 3 }, 4)
     assert_false(result, "isExistsInTable 不包含值")
 end)
 
 test_case("compareTable - 相同表", function()
-    local result = lion.compareTable({a = 1, b = 2}, {a = 1, b = 2})
+    local result = lion.compareTable({ a = 1, b = 2 }, { a = 1, b = 2 })
     assert_true(result, "compareTable 相同表")
 end)
 
 test_case("compareTable - 不同表", function()
-    local result = lion.compareTable({a = 1, b = 2}, {a = 1, b = 3})
+    local result = lion.compareTable({ a = 1, b = 2 }, { a = 1, b = 3 })
     assert_false(result, "compareTable 不同表")
 end)
 
 test_case("deepCopy - 深拷贝", function()
-    local original = {a = 1, b = {c = 2}}
+    local original = { a = 1, b = { c = 2 } }
     local copy = lion.deepCopy(original)
     original.b.c = 3
     assert_equal(copy.b.c, 2, "deepCopy 深拷贝不影响原表")
@@ -281,7 +281,7 @@ test_case("convertStringToTable - 字符串转表", function()
 end)
 
 test_case("convertArrayToString - 表转字符串", function()
-    local result = lion.convertArrayToString({1, 2, 3}, ",")
+    local result = lion.convertArrayToString({ 1, 2, 3 }, ",")
     assert_equal(result, "1,2,3", "convertArrayToString 转换结果")
 end)
 
@@ -338,7 +338,7 @@ test_case("safeToNum - 非数字字符串", function()
 end)
 
 test_case("safeTableToNum - 表转数字", function()
-    local tab = {a = "123", b = "456"}
+    local tab = { a = "123", b = "456" }
     local result = lion.safeTableToNum(tab)
     assert_equal(result.a, 123, "safeTableToNum a值")
     assert_equal(result.b, 456, "safeTableToNum b值")
@@ -411,7 +411,7 @@ test_case("urlDecode - 解码", function()
 end)
 
 test_case("tableToUrl - 表转URL", function()
-    local result = lion.tableToUrl({a = 1, b = 2})
+    local result = lion.tableToUrl({ a = 1, b = 2 })
     assert_true(string.find(result, "a=1") ~= nil, "tableToUrl 包含a=1")
     assert_true(string.find(result, "b=2") ~= nil, "tableToUrl 包含b=2")
 end)
@@ -431,14 +431,14 @@ end)
 -- 15. 排序测试
 print("\n15. 排序测试")
 test_case("bubbleSort - 冒泡排序", function()
-    local tab = {{value = 3}, {value = 1}, {value = 2}}
+    local tab = { { value = 3 }, { value = 1 }, { value = 2 } }
     lion.bubbleSort(tab, "value")
     assert_equal(tab[1].value, 3, "bubbleSort 第一个元素")
     assert_equal(tab[3].value, 1, "bubbleSort 最后一个元素")
 end)
 
 test_case("antiBubbleSort - 反冒泡排序", function()
-    local tab = {{value = 3}, {value = 1}, {value = 2}}
+    local tab = { { value = 3 }, { value = 1 }, { value = 2 } }
     lion.antiBubbleSort(tab, "value")
     assert_equal(tab[1].value, 1, "antiBubbleSort 第一个元素")
     assert_equal(tab[3].value, 3, "antiBubbleSort 最后一个元素")
@@ -507,7 +507,7 @@ end)
 -- 20. Redis 表转换测试
 print("\n20. Redis 表转换测试")
 test_case("redisTableToLuaTable - 一维表转换", function()
-    local result = lion.redisTableToLuaTable({"a", "1", "b", "2"})
+    local result = lion.redisTableToLuaTable({ "a", "1", "b", "2" })
     assert_equal(result.a, "1", "redisTableToLuaTable a值")
     assert_equal(result.b, "2", "redisTableToLuaTable b值")
 end)
@@ -515,7 +515,7 @@ end)
 -- 21. 微信签名测试
 print("\n21. 微信签名测试")
 test_case("makeWxSign - 正常签名", function()
-    local args = {a = "1", b = "2"}
+    local args = { a = "1", b = "2" }
     local result = lion.makeWxSign(args, "testkey")
     if result == "" then
         print("  (跳过：md5 不可用)")
@@ -537,7 +537,7 @@ test_case("dbSafeCheck - nil结果", function()
 end)
 
 test_case("dbSafeCheck - 错误结果", function()
-    local result = lion.dbSafeCheck({badresult = true})
+    local result = lion.dbSafeCheck({ badresult = true })
     assert_false(result, "dbSafeCheck 错误结果")
 end)
 
@@ -551,7 +551,7 @@ end)
 -- 24. XML/JSON 转换测试
 print("\n24. XML/JSON 转换测试")
 test_case("tableToXml - 表转XML", function()
-    local result = lion.tableToXml({a = 1, b = 2})
+    local result = lion.tableToXml({ a = 1, b = 2 })
     assert_true(string.find(result, "<a>") ~= nil, "tableToXml 包含<a>")
     assert_true(string.find(result, "<b>") ~= nil, "tableToXml 包含<b>")
 end)
@@ -559,8 +559,8 @@ end)
 -- 25. 从表中删除指定值测试
 print("\n25. 从表中删除指定值测试")
 test_case("removeFromTable - 删除指定值", function()
-    local tab = {a = 1, b = 2, c = 3}
-    local result = lion.removeFromTable(tab, {2})
+    local tab = { a = 1, b = 2, c = 3 }
+    local result = lion.removeFromTable(tab, { 2 })
     assert_false(lion.isExistsInTable(result, 2), "removeFromTable 删除2")
 end)
 
@@ -579,7 +579,7 @@ test_case("secToDateTime - 秒数转日期时间", function()
 end)
 
 test_case("dateTimeToStringTime - 日期时间转字符串", function()
-    local dateTime = {year = "2021", month = "01", day = "01", hour = "12", minute = "00", second = "00"}
+    local dateTime = { year = "2021", month = "01", day = "01", hour = "12", minute = "00", second = "00" }
     local result = lion.dateTimeToStringTime(dateTime)
     assert_equal(result, "2021-01-01 12:00:00", "dateTimeToStringTime 转换结果")
 end)
@@ -594,7 +594,7 @@ end)
 -- 28. 表去重测试
 print("\n28. 表去重测试")
 test_case("tableDuplicate - 表去重", function()
-    local tab = {1, 2, 3, 2, 4, 1}
+    local tab = { 1, 2, 3, 2, 4, 1 }
     local result = lion.tableDuplicate(tab)
     assert_equal(#result, 4, "tableDuplicate 去重后长度")
 end)

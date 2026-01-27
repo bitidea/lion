@@ -1717,7 +1717,7 @@ function lion.isSuccess(successRate)
     -- 确保成功率在 0-100 范围内
     successRate = math.max(0, math.min(100, successRate))
     successRate = math.floor(successRate)
-    
+
     local res = math.random(1, 100)
     return res <= successRate
 end
@@ -2114,9 +2114,6 @@ function lion.createReplaceSQL(tableName, argsTable)
     return sql
 end
 
-
-
-
 --[[
 判断与今天是否相隔超过1天
 ]]
@@ -2398,7 +2395,6 @@ lion.Queue = Queue
 返回：true : time1 > time2false : time1 <= time2
 ]]
 function lion.compareTimes(time1, time2)
-
     local y1, mon1, d1 = string.match(time1, "(%d+)-(%d+)-(%d+)")
     local h1, m1, s1 = string.match(time1, "(%d+):(%d+):(%d+)")
 
@@ -2472,7 +2468,6 @@ function lion.getFakeRandomUserCode(userID)
             end
         end
         return self:bToD(r)
-
     end --bit:_and
 
     function bit:_or(a, b)
@@ -2629,7 +2624,6 @@ function lion.getUserIDByCode(code)
             end
         end
         return self:bToD(r)
-
     end --bit:_and
 
     function bit:_or(a, b)
@@ -2872,7 +2866,6 @@ end
 返回：jsonData or nil
 ]]
 function lion.readJsonFile(path)
-
     if "string" ~= type(path) then
         print("ERROR writeLog: fileName is not string.")
         return
@@ -3013,9 +3006,9 @@ end
 dayChange为指定日期前后天数，用法：前一天 -1 后一天 1.
 ]]
 function lion.dateChange(time, dayChange)
-    local year = string.sub(time, 0, 4); --年份
-    local month = string.sub(time, 6, 7); --月
-    local day = string.sub(time, 9, 10); --日
+    local year = string.sub(time, 0, 4);                                                 --年份
+    local month = string.sub(time, 6, 7);                                                --月
+    local day = string.sub(time, 9, 10);                                                 --日
     local time1 = os.time({ year = year, month = month, day = day }) + dayChange * 86400 --一天86400秒
     return os.date('%Y', time1) .. "-" .. os.date('%m', time1) .. "-" .. os.date('%d', time1)
 end
