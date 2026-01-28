@@ -11,7 +11,7 @@ local lion = {}
 返回值 "***万"字符串
 ]]
 function lion.formatNumberToWan(num)
-    return lion.formatNumberToReadable(num, 10000, 0, { "", "万" })
+    return lion.formatNumberToReadable(num, 10000, 1, { "", "万", "亿" })
 end
 
 --[[
@@ -45,6 +45,7 @@ function lion.formatNumberToReadable(num, unitLength, decimalPlaces, unitArray)
         result = tostring(absNum)
     else
         result = string.format("%." .. decimalPlaces .. "f", absNum)
+        result = string.gsub(result, "%.?0+$", "")
     end
     result = result .. unitArray[unitIndex]
 
