@@ -163,7 +163,7 @@
 cp lion.lua /path/to/your/project/
 ```
 
-### 方法2: 使用LuaRocks（如果支持）
+### 方法2: 使用 LuaRocks
 ```bash
 luarocks install lion
 ```
