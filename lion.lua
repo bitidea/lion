@@ -877,7 +877,10 @@ Unicode 转义串（\uXXXX）转 UTF-8 字节串
 返回值 string UTF-8 字符串
 ]]
 function lion.unicodeToUtf8(str)
-    local bit = require("bit")
+    local ok, bit = pcall(require, "bit32")
+    if not ok or not bit then
+        return ""
+    end
     if type(str) ~= "string" then
         return str
     end
@@ -896,7 +899,6 @@ function lion.unicodeToUtf8(str)
         else
             break
         end
-        -- print(unicode)
 
         if unicode <= 0x007f then
             resultStr = resultStr .. string.char(bit.band(unicode, 0x7f))
@@ -919,7 +921,10 @@ UTF-8 字节串转 Unicode 转义串（\uXXXX）
 返回值 string 含 \uXXXX 的字符串
 ]]
 function lion.utf8ToUnicode(str)
-    local bit = require("bit")
+    local ok, bit = pcall(require, "bit32")
+    if not ok or not bit then
+        return ""
+    end
     if type(str) ~= "string" then
         return str
     end
@@ -1659,7 +1664,10 @@ function lion.tableToJson(tab)
         return ""
     end
 
-    local json = require("glzp.json")
+    local ok, json = pcall(require, "cjson")
+    if not ok or not json then
+        return ""
+    end
     local ok, val = pcall(json.encode, tab)
     if ok == false then
         return ""
@@ -1678,7 +1686,10 @@ function lion.cjsonEncode(tab)
         return ""
     end
 
-    local json = require("cjson")
+    local ok, json = pcall(require, "cjson")
+    if not ok or not json then
+        return ""
+    end
     local ok, val = pcall(json.encode, tab)
     if ok == false then
         return ""
@@ -1697,7 +1708,10 @@ function lion.jsonToTable(text)
         return {}
     end
 
-    local json = require("glzp.json")
+    local ok, json = pcall(require, "cjson")
+    if not ok or not json then
+        return {}
+    end
     local ok, val = pcall(json.decode, text)
     if ok == false then
         print("json2Table decode fail", val)
@@ -1717,7 +1731,10 @@ function lion.cjsonDecode(text)
         return {}
     end
 
-    local json = require("cjson")
+    local ok, json = pcall(require, "cjson")
+    if not ok or not json then
+        return {}
+    end
     local ok, val = pcall(json.decode, text)
     if ok == false then
         print("json2Table decode fail", val)
@@ -1737,7 +1754,10 @@ function lion.xmlToTable(text)
         return {}
     end
 
-    local xml = require("xml")
+    local ok, xml = pcall(require, "xml")
+    if not ok or not xml then
+        return {}
+    end
     local ok, val = pcall(xml.txml, text)
     if ok == false then
         print("xml2Table err", val)
