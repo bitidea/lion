@@ -1,3 +1,8 @@
+--[[
+Lion Util - Lua 工具库
+命名约定：函数与参数均使用 camelCase；表字段与局部变量也建议 camelCase。
+]]
+
 local lion = {}
 
 --[[
@@ -41,18 +46,6 @@ function lion.stringSplit(fullString, separator)
         nSplitIndex = nSplitIndex + 1
     end
     return nSplitArray
-end
-
---[[
-时间戳转换为日期时间
-参数 sec 时间戳字符串
-返回值 字符串
-]]
-function lion.convertTimestampToDateTime(sec)
-    if sec == nil then
-        sec = os.time()
-    end
-    return os.date("%Y-%m-%d %H:%M:%S", tonumber(sec))
 end
 
 --[[
@@ -394,12 +387,16 @@ function lion.checkIdCard(str)
         local address = { "11", "22", "35", "44", "53", "12", "23", "36", "45", "54", "13", "31", "37", "46", "61", "14",
             "32", "41", "50", "62", "15", "33", "42", "51", "63", "21", "34", "43", "52", "64", "65", "71", "81", "82",
             "91" }
-        for i = 1, 35, 1 do
-            if string.sub(str, 1, 2) ~= address[i] then
+        local addrValid = false
+        local prefix = string.sub(str, 1, 2)
+        for i = 1, #address do
+            if prefix == address[i] then
+                addrValid = true
                 break
-            elseif i == 35 then
-                return false
             end
+        end
+        if not addrValid then
+            return false
         end
 
         local birth = string.sub(str, 7, 14)
@@ -563,12 +560,16 @@ function lion.trimString(str)
 end
 
 --[[
-正则删除字符串的空格
-参数 str 要删除空格的字符串
-返回 删除空格后的字符串
+去除字符串首尾空白（空格、制表等）
+参数 str 原字符串
+返回值 去除首尾空白后的字符串，nil 时返回 ""
 ]]
-function lion.trimSpace(s)
-    return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
+function lion.trimSpace(str)
+    if str == nil then
+        return ""
+    end
+    str = tostring(str)
+    return (string.gsub(str, "^%s*(.-)%s*$", "%1"))
 end
 
 --[[
@@ -800,11 +801,11 @@ function lion.emojiPos(inputstr)
 end
 
 --[[
-字符串转表
+字符串按 UTF-8 字符拆成表（每个元素为一个 UTF-8 字符）
 参数 str 要转换的字符串
-返回 表
+返回值 table 字符组成的数组
 ]]
-function lion.convertStringToTable(str)
+function lion.stringToTable(str)
     str = tostring(str)
     local tb = {}
     --[[
@@ -827,7 +828,7 @@ end
 function lion.deleteEmojiFromString(str)
     str = tostring(str)
     local newStr = ""
-    local tab = lion.convertStringToTable(str)
+    local tab = lion.stringToTable(str)
     for k, v in pairs(tab) do
         if lion.hasEmoji(v) == false then
             newStr = newStr .. tostring(v)
@@ -838,27 +839,27 @@ function lion.deleteEmojiFromString(str)
 end
 
 --[[
-Unicode 转 Utf8
-参数 convertStr 需要转换的字符串
-返回 转换后的字符串
+Unicode 转义串（\uXXXX）转 UTF-8 字节串
+参数 str 含 \uXXXX 的字符串
+返回值 string UTF-8 字符串
 ]]
-function lion.convertUnicodeToUtf8(convertStr)
+function lion.unicodeToUtf8(str)
     local bit = require("bit")
-    if type(convertStr) ~= "string" then
-        return convertStr
+    if type(str) ~= "string" then
+        return str
     end
     local resultStr = ""
-    local i = 1
+    local idx = 1
     while true do
-        local num1 = string.byte(convertStr, i)
+        local num1 = string.byte(str, idx)
         local unicode
 
-        if num1 ~= nil and string.sub(convertStr, i, i + 1) == "\\u" then
-            unicode = tonumber("0x" .. string.sub(convertStr, i + 2, i + 5))
-            i = i + 6
+        if num1 ~= nil and string.sub(str, idx, idx + 1) == "\\u" then
+            unicode = tonumber("0x" .. string.sub(str, idx + 2, idx + 5))
+            idx = idx + 6
         elseif num1 ~= nil then
             unicode = num1
-            i = i + 1
+            idx = idx + 1
         else
             break
         end
@@ -880,18 +881,18 @@ function lion.convertUnicodeToUtf8(convertStr)
 end
 
 --[[
-Utf8 转 Unicode
-参数 convertStr 需要转换的字符串
-返回 转换后的字符串
+UTF-8 字节串转 Unicode 转义串（\uXXXX）
+参数 str UTF-8 字符串
+返回值 string 含 \uXXXX 的字符串
 ]]
-function lion.convertUtf8ToUnicode(convertStr)
+function lion.utf8ToUnicode(str)
     local bit = require("bit")
-    if type(convertStr) ~= "string" then
-        return convertStr
+    if type(str) ~= "string" then
+        return str
     end
     local resultStr = ""
-    local i = 1
-    local num1 = string.byte(convertStr, i)
+    local idx = 1
+    local num1 = string.byte(str, idx)
 
     while num1 ~= nil do
         local tempVar1, tempVar2
@@ -902,8 +903,8 @@ function lion.convertUtf8ToUnicode(convertStr)
             local t1 = 0
             local t2 = 0
             t1 = bit.band(num1, bit.rshift(0xff, 3))
-            i = i + 1
-            num1 = string.byte(convertStr, i)
+            idx = idx + 1
+            num1 = string.byte(str, idx)
             t2 = bit.band(num1, bit.rshift(0xff, 2))
             tempVar1 = bit.bor(t2, bit.lshift(bit.band(t1, bit.rshift(0xff, 6)), 6))
             tempVar2 = bit.rshift(t1, 2)
@@ -912,29 +913,29 @@ function lion.convertUtf8ToUnicode(convertStr)
             local t2 = 0
             local t3 = 0
             t1 = bit.band(num1, bit.rshift(0xff, 3))
-            i = i + 1
-            num1 = string.byte(convertStr, i)
+            idx = idx + 1
+            num1 = string.byte(str, idx)
             t2 = bit.band(num1, bit.rshift(0xff, 2))
-            i = i + 1
-            num1 = string.byte(convertStr, i)
+            idx = idx + 1
+            num1 = string.byte(str, idx)
             t3 = bit.band(num1, bit.rshift(0xff, 2))
             tempVar1 = bit.bor(bit.lshift(bit.band(t2, bit.rshift(0xff, 6)), 6), t3)
             tempVar2 = bit.bor(bit.lshift(t1, 4), bit.rshift(t2, 2))
         end
         resultStr = resultStr .. string.format("\\u%02x%02x", tempVar2, tempVar1)
-        i = i + 1
-        num1 = string.byte(convertStr, i)
+        idx = idx + 1
+        num1 = string.byte(str, idx)
     end
     return resultStr
 end
 
 --[[
-表转字符串
+表按分隔符拼成字符串（与 tableToJson / tableToUrl 等命名一致）
 参数 tab 需要转换的表
 参数 separator 分隔符
-返回 转换后的字符串
+返回值 string
 ]]
-function lion.convertArrayToString(tab, separator)
+function lion.tableToString(tab, separator)
     if tab == nil or type(tab) ~= "table" or separator == nil then
         return ""
     end
@@ -950,23 +951,29 @@ function lion.convertArrayToString(tab, separator)
 end
 
 --[[
-字符串转表
+字符串按分隔符拆成数组（等同于 stringSplit）
 参数 str 需要转换的字符串
 参数 separator 分隔符
-返回 转换后的字符串
+返回值 table 字符串数组
 ]]
-function lion.convertStringToArray(str, separator)
+function lion.stringToArray(str, separator)
     return lion.stringSplit(str, separator)
 end
 
 --[[
 删除字符串的最后一个字符
+参数 str 原字符串
+返回值 去掉最后一个字符后的字符串，若 str 为 nil 返回 ""
 ]]
 function lion.cutStringLast(str)
-    if str ~= "" then
-        str = string.sub(str, 1, -2)
+    if str == nil or str == "" then
+        return ""
     end
-    return str or ""
+    str = tostring(str)
+    if #str <= 1 then
+        return ""
+    end
+    return string.sub(str, 1, -2)
 end
 
 --[[
@@ -1148,12 +1155,12 @@ function lion.ifTimeInZone(time, startTime, endTime)
 end
 
 --[[
-秒数转为日期时间字符串
-second int 秒数
+秒数转为日期时间字符串（时间戳 → "YYYY-MM-DD HH:MM:SS"）
+参数 second number|string 秒数时间戳，nil 时用当前时间
 返回值 string 日期时间字符串
 ]]
 function lion.secToDate(second)
-    second = second or os.time()
+    second = tonumber(second) or os.time()
     return os.date("%Y-%m-%d %H:%M:%S", second)
 end
 
@@ -1494,9 +1501,11 @@ function lion.binToHex(s)
 end
 
 --[[
-
+十六进制字符串转二进制（每两字符一格，支持空格分隔）
+参数 hexStr 十六进制字符串，如 "48656C6C 6F"
+返回值 二进制字符串，非法输入未做保护时可能抛错
 ]]
-function lion.hexToBin(hexstr)
+function lion.hexToBin(hexStr)
     local h2b = {
         ["0"] = 0,
         ["1"] = 1,
@@ -1516,7 +1525,7 @@ function lion.hexToBin(hexstr)
         ["F"] = 15
     }
 
-    local s = string.gsub(hexstr, "(.)(.)%s", function(h, l)
+    local s = string.gsub(hexStr or "", "(.)(.)%s", function(h, l)
         return string.char(h2b[h] * 16 + h2b[l])
     end)
     return s
@@ -1797,22 +1806,17 @@ function lion.urlToTable(url)
     if url == "" or url == nil then
         return {}
     end
-    local t1 = nil
-    --,
-    t1 = lion.stringSplit(url, ',')
-
-    --?
-    url = t1[1]
-    t1 = lion.stringSplit(t1[1], '?')
-
-    url = t1[2]
-    --&
-
-    t1 = lion.stringSplit(t1[2], '&')
+    local parts = lion.stringSplit(url, ',')
+    local queryStr = parts[1] or ""
+    parts = lion.stringSplit(queryStr, '?')
+    local paramStr = parts[2] or parts[1] or ""
+    local pairsList = lion.stringSplit(paramStr, '&')
     local res = {}
-    for k, v in pairs(t1) do
-        local t2 = lion.stringSplit(v, '=')
-        res[t2[1]] = t2[2]
+    for _, pairStr in ipairs(pairsList) do
+        local kv = lion.stringSplit(pairStr, '=')
+        if kv[1] then
+            res[kv[1]] = kv[2]
+        end
     end
     return res
 end
@@ -1847,21 +1851,22 @@ function lion.urlParamToTable(url, split, symbol)
 
     split = split or "&"
     symbol = symbol or "="
-    local t1 = lion.stringSplit(url, split)
+    local pairList = lion.stringSplit(url, split)
     local res = {}
-    for k, v in pairs(t1) do
-        i = 1
-        t1 = lion.stringSplit(v, symbol)
-        res[t1[1]] = {}
-        res[t1[1]] = t1[2]
-        i = i + 1
+    for _, pairStr in ipairs(pairList) do
+        local kv = lion.stringSplit(pairStr, symbol)
+        if kv[1] then
+            res[kv[1]] = kv[2]
+        end
     end
     return res
 end
 
 --[[
-url字符串转表
-urlstring url字符串
+url字符串转表（键值转为数字）
+参数 url url字符串
+参数 split 分隔符，默认 "&"
+参数 symbol 键值分隔符，默认 "="
 返回值： table表
 ]]
 function lion.urlParamToTableToNum(url)
@@ -2062,11 +2067,11 @@ end
 
 --[[
 生成sql查询语句
-fileds string * aaa,bbb,ccc
+fields string * 或 "aaa,bbb,ccc"
 whereTable 条件，没有传nil,否则传key=value的表 {name="aa",age=10} and条件
 ]]
-function lion.createSelectSQL(tableName, fileds, whereTable)
-    local sql = string.format("select %s from %s ", fileds, tableName)
+function lion.createSelectSQL(tableName, fields, whereTable)
+    local sql = string.format("select %s from %s ", fields, tableName)
     if whereTable == nil or lion.countTable(whereTable) == 0 then
         return sql
     end
@@ -2081,11 +2086,13 @@ function lion.createSelectSQL(tableName, fileds, whereTable)
 end
 
 --[[
-fileds string * aaa,bbb,ccc
-wherestringwhere userID=123 and userName='aaa' limit 1
+生成完整sql查询语句
+参数 tableName 表名
+参数 fields 字段列表，如 "*" 或 "aaa,bbb,ccc"
+参数 where 条件字符串，如 "where userID=123 and userName='aaa' limit 1"
 ]]
-function lion.createFullSelectSQL(tableName, fileds, where)
-    local sql = string.format("select %s from %s ", fileds, tableName)
+function lion.createFullSelectSQL(tableName, fields, where)
+    local sql = string.format("select %s from %s ", fields, tableName)
     if lion.isStringEmpty(where) == true then
         return sql
     end
@@ -2125,12 +2132,18 @@ function lion.overOneDay(date)
 
     --解析记录中的日期时间
     local lastDate = lion.stringSplit(date, "-")
-    if lastDate == "" or lastDate == nil then
+    if not lastDate or #lastDate < 3 then
         return false
     end
     local lastY = tonumber(lastDate[1])
     local lastM = tonumber(lastDate[2])
     local lastD = tonumber(lastDate[3])
+    if not lastY or not lastM or not lastD then
+        return false
+    end
+    nowY = tonumber(nowY)
+    nowM = tonumber(nowM)
+    nowD = tonumber(nowD)
     --超过1年
     if nowY - lastY >= 1 then
         return true
@@ -2226,7 +2239,7 @@ function lion.getDate(time)
     local tabTime = os.date("*t", time)
     local formatDate = ""
     local format = "-"
-    formatDate = "[" .. tabTime.year .. format .. tabTime.month .. format .. tabTime.day "]"
+    formatDate = "[" .. tabTime.year .. format .. tabTime.month .. format .. tabTime.day .. "]"
     return formatDate
 end
 
@@ -2313,8 +2326,7 @@ end
 向队列尾添加元素
 ]]
 function Queue.push_last(queue, value)
-    if (queue.last - queue.first + 1) > queue.maxLen then
-        --队列满
+    if queue.maxLen and (queue.last - queue.first + 1) >= queue.maxLen then
         return -1
     end
 
@@ -2341,7 +2353,9 @@ function Queue.pop_first(queue)
 end
 
 --[[
-
+判断队列是否为空
+参数 queue 队列对象
+返回值 boolean 为空返回 true
 ]]
 function Queue.isEmpty(queue)
     if queue.first > queue.last then
@@ -2352,7 +2366,9 @@ function Queue.isEmpty(queue)
 end
 
 --[[
-
+判断队列是否已满（仅当创建时指定了 maxLen 时有效）
+参数 queue 队列对象
+返回值 boolean 已满返回 true，无长度限制时返回 false
 ]]
 function Queue.isFull(queue)
     if nil == queue.maxLen then
@@ -2367,20 +2383,27 @@ function Queue.isFull(queue)
 end
 
 --[[
-
+获取队列当前元素个数
+参数 queue 队列对象
+返回值 number
 ]]
 function Queue.getLen(queue)
     return queue.last - queue.first + 1
 end
 
 --[[
-
+获取队列最大长度（若创建时未指定则返回 nil）
+参数 queue 队列对象
+返回值 number|nil
 ]]
 function Queue.getMaxLen(queue)
     return queue.maxLen
 end
 
 --[[
+设置队列最大长度
+参数 queue 队列对象
+参数 maxLen 最大元素个数
 ]]
 function Queue.setMaxLen(queue, maxLen)
     queue.maxLen = maxLen
@@ -2390,9 +2413,10 @@ lion.Queue = Queue
 
 
 --[[
-功能描述：比较时间
-参数：time1,time2 格式 os.date("%Y-%m-%d %H:%M:%S", os.time())
-返回：true : time1 > time2false : time1 <= time2
+比较两个时间字符串的大小
+参数 time1 时间字符串，格式 "YYYY-MM-DD HH:MM:SS"
+参数 time2 同上
+返回值 boolean true 表示 time1 > time2，否则为 false
 ]]
 function lion.compareTimes(time1, time2)
     local y1, mon1, d1 = string.match(time1, "(%d+)-(%d+)-(%d+)")
@@ -2720,9 +2744,11 @@ function lion.getUserIDByCode(code)
 end
 
 --[[
-转utf8
+HTML 数字实体（&#123;）转 UTF-8 字符
+参数 str 含 &#十进制; 的字符串
+返回值 string 转换后的 UTF-8 字符串
 ]]
-function lion.convertUtf8(str)
+function lion.htmlEntitiesToUtf8(str)
     local function tail(n, k)
         local u, r = '', 0
         for i = 1, k do
@@ -2991,11 +3017,22 @@ end
 处理 x-www-form-urlencoded 类型数据，并自动urldecode
 ]]
 function lion.parseUrlencoded(form)
+    if form == nil or form == "" then
+        return {}
+    end
     local t = {}
-    local arr = lion.splitString(form, "&")
-    for k, v in pairs(arr) do
-        local dataArr = lion.splitString(v, "=")
-        t[dataArr[1]] = lion.urlDecode(dataArr[2]) --要先将+替代成空格
+    local arr = lion.stringSplit(form, "&")
+    for _, v in ipairs(arr) do
+        local dataArr = lion.stringSplit(v, "=")
+        if dataArr[1] then
+            local val = dataArr[2]
+            if val then
+                val = string.gsub(val, "+", " ")
+                t[dataArr[1]] = lion.urlDecode(val)
+            else
+                t[dataArr[1]] = ""
+            end
+        end
     end
     return t
 end
@@ -3019,27 +3056,25 @@ end
 一圆/园/员/快/毛/yuan （一等数字前缀）
 壹圆/园/员/快/毛/yuan（壹等数字前缀）
 ]]
-function lion.checkSpecailBannedWords(data)
+function lion.checkSpecialBannedWords(data)
     if type(data) ~= "string" then
         return nil
     end
     local preStrTab = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "零", "一", "二", "三", "四", "五", "六",
         "七", "八", "九", "十", "壹", "贰", "叁", "肆", "伍", "陸", "柒", "捌", "玖", "拾" }
     local bannedWordsTab = { "圆", "园", "员", "快", "毛", "yuan" }
-    local ret1, ret2
-
-    local ret1, ret2
-    for i, v in ipairs(preStrTab) do
-        for j, k in ipairs(bannedWordsTab) do
-            ret1, ret2 = string.find(data, v .. k)
-            if ret1 ~= nil then
-                return k
+    local startIdx, endIdx
+    for _, prefix in ipairs(preStrTab) do
+        for _, bannedWord in ipairs(bannedWordsTab) do
+            startIdx, endIdx = string.find(data, prefix .. bannedWord)
+            if startIdx ~= nil then
+                return bannedWord
             end
         end
     end
-    ret1, ret2 = string.find(data, "[$]")
-    if ret1 then
-        return string.sub(data, ret1, ret2)
+    startIdx, endIdx = string.find(data, "[$]")
+    if startIdx then
+        return string.sub(data, startIdx, endIdx)
     end
     return nil
 end

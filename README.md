@@ -6,7 +6,7 @@
 
 - 🚀 **轻量级**: 纯Lua实现，无外部依赖
 - 📦 **功能丰富**: 100+ 个实用函数
-- 🧪 **测试完善**: 96个单元测试，100% 通过率
+- 🧪 **测试完善**: 98 个单元测试，100% 通过率
 - 🌍 **跨平台**: 支持 Windows/Linux/macOS
 - 🔧 **易于使用**: 简洁的 API 设计
 
@@ -17,12 +17,12 @@
 
 ### 2. 字符串处理
 - `stringSplit(fullString, separator)` - 字符串分割
-- `trimString(str)` - 删除空格
-- `trimSpace(s)` - 删除首尾空格
-- `subString(inputstr, len)` - 截取字符串
-- `getStringLen(inputstr)` - 计算字符串长度（支持中文）
+- `trimString(str)` - 删除字符串内所有空格
+- `trimSpace(str)` - 去除首尾空白（空格、制表等）
+- `subString(inputstr, len)` - 按字符数截取字符串（支持中文）
+- `getStringLen(inputstr)` - 计算字符串显示长度（中文算 2）
 - `cutStringLast(str)` - 删除最后一个字符
-- `findString(str, findStr)` - 查找字符串
+- `findString(str, findStr)` - 查找子串
 - `isStringEmpty(str)` - 检查字符串是否为空
 
 ### 3. 符号检查
@@ -56,18 +56,18 @@
 - `emojiPos(inputstr)` - 获取 emoji 位置
 - `deleteEmojiFromString(str)` - 从字符串中删除 emoji
 
-### 8. 字符串转换
-- `convertStringToTable(str)` - 字符串转表
-- `convertArrayToString(tab, separator)` - 表转字符串
-- `convertStringToArray(str, separator)` - 字符串转数组
+### 8. 字符串/表转换（命名风格：源To目标）
+- `stringToTable(str)` - 字符串按 UTF-8 字符拆成表
+- `tableToString(tab, separator)` - 表用分隔符拼成字符串
+- `stringToArray(str, separator)` - 字符串按分隔符拆成数组（等同 stringSplit）
 
-### 9. Unicode/UTF-8转换
-- `convertUnicodeToUtf8(convertStr)` - Unicode 转 UTF-8
-- `convertUtf8ToUnicode(convertStr)` - UTF-8 转 Unicode
+### 9. Unicode/UTF-8 转换
+- `unicodeToUtf8(str)` - \uXXXX 转义串转 UTF-8
+- `utf8ToUnicode(str)` - UTF-8 转 \uXXXX 转义串
+- `htmlEntitiesToUtf8(str)` - HTML 数字实体（&#123;）转 UTF-8
 
 ### 10. 时间处理
-- `convertTimestampToDateTime(sec)` - 时间戳转换为日期时间
-- `secToDate(second)` - 秒数转日期字符串
+- `secToDate(second)` - 秒数/时间戳转日期时间字符串（"YYYY-MM-DD HH:MM:SS"）
 - `dateToSec(date)` - 日期字符串转秒数
 - `stringTimeToDateTime(stringTime)` - 字符串时间转日期时间表
 - `secToDateTime(second)` - 秒数转日期时间表
@@ -123,8 +123,8 @@
 - `createUpdateSQL(tableName, argsTable, whereTable)` - 创建更新 SQL
 - `createFullUpdateSQL(tableName, set, where)` - 创建完整更新 SQL
 - `createDeleteSQL(tableName, whereTable)` - 创建删除SQL
-- `createSelectSQL(tableName, fileds, whereTable)` - 创建查询 SQL
-- `createFullSelectSQL(tableName, fileds, where)` - 创建完整查询 SQL
+- `createSelectSQL(tableName, fields, whereTable)` - 创建查询 SQL
+- `createFullSelectSQL(tableName, fields, where)` - 创建完整查询 SQL
 - `createReplaceSQL(tableName, argsTable)` - 创建替换SQL
 - `dbSafeCheck(sqlres)` - 数据库安全检查
 
@@ -227,7 +227,7 @@ print(insertSQL)
 
 ### 运行测试
 ```bash
-# Windows PowerShell
+# Windows（推荐 lua55.exe）
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 lua55.exe test_lion.lua
 
@@ -236,10 +236,7 @@ lua test_lion.lua
 ```
 
 ### 测试结果
-- 总测试数: 96
-- 通过: 96
-- 失败: 0
-- 通过率: 100%
+运行 `lua55.exe test_lion.lua`（Windows）或 `lua test_lion.lua`（Linux/macOS）后，将输出总测试数、通过数、失败数与通过率。当前约 98 个用例，通过率 100%。
 
 ## 依赖
 
@@ -258,8 +255,9 @@ lua test_lion.lua
 5. 开启一个Pull Request
 
 ### 代码规范
-- 遵循现有的代码风格
-- 添加适当的注释
+- **命名约定**：函数与参数使用 camelCase；转换类 API 使用「源To目标」风格（如 `secToDate`、`stringToTable`、`tableToJson`）
+- 遵循现有代码风格
+- 添加适当注释
 - 为新功能编写测试用例
 - 确保所有测试通过
 

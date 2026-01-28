@@ -82,21 +82,21 @@ end)
 
 -- 3. 时间转换测试
 print("\n3. 时间转换测试")
-test_case("convertTimestampToDateTime - 正常时间戳", function()
-    local testTimestamp = lion.dateToSec("2021-01-01 00:00:00")
-    local result = lion.convertTimestampToDateTime(testTimestamp)
-    assert_true(string.find(result, "2021%-01%-01") ~= nil, "convertTimestampToDateTime 包含日期")
-end)
-
-test_case("convertTimestampToDateTime - nil", function()
-    local result = lion.convertTimestampToDateTime(nil)
-    assert_true(string.find(result, "%d%d%d%d") ~= nil, "convertTimestampToDateTime nil 返回当前时间")
-end)
-
-test_case("secToDate - 正常秒数", function()
+test_case("secToDate - 正常时间戳", function()
     local testTimestamp = lion.dateToSec("2021-01-01 00:00:00")
     local result = lion.secToDate(testTimestamp)
     assert_true(string.find(result, "2021%-01%-01") ~= nil, "secToDate 包含日期")
+end)
+
+test_case("secToDate - 字符串时间戳", function()
+    local testTimestamp = lion.dateToSec("2021-01-01 00:00:00")
+    local result = lion.secToDate(tostring(testTimestamp))
+    assert_true(string.find(result, "2021%-01%-01") ~= nil, "secToDate 字符串时间戳")
+end)
+
+test_case("secToDate - nil 使用当前时间", function()
+    local result = lion.secToDate(nil)
+    assert_true(string.find(result, "%d%d%d%d") ~= nil, "secToDate nil 返回当前时间")
 end)
 
 test_case("dateToSec - 正常日期", function()
@@ -273,16 +273,22 @@ test_case("deleteEmojiFromString - 删除emoji", function()
     assert_equal(result, "helloworld", "deleteEmojiFromString 删除结果")
 end)
 
--- 10. 字符串转换测试
-print("\n10. 字符串转换测试")
-test_case("convertStringToTable - 字符串转表", function()
-    local result = lion.convertStringToTable("hello")
-    assert_equal(#result, 5, "convertStringToTable 长度")
+-- 10. 字符串/表转换测试
+print("\n10. 字符串/表转换测试")
+test_case("stringToTable - 字符串按 UTF-8 字符拆成表", function()
+    local result = lion.stringToTable("hello")
+    assert_equal(#result, 5, "stringToTable 长度")
 end)
 
-test_case("convertArrayToString - 表转字符串", function()
-    local result = lion.convertArrayToString({ 1, 2, 3 }, ",")
-    assert_equal(result, "1,2,3", "convertArrayToString 转换结果")
+test_case("tableToString - 表按分隔符拼成字符串", function()
+    local result = lion.tableToString({ 1, 2, 3 }, ",")
+    assert_equal(result, "1,2,3", "tableToString 转换结果")
+end)
+
+test_case("stringToArray - 字符串按分隔符拆成数组", function()
+    local result = lion.stringToArray("a,b,c", ",")
+    assert_equal(#result, 3, "stringToArray 长度")
+    assert_equal(result[1], "a", "stringToArray 第一项")
 end)
 
 -- 11. 类型转换测试
@@ -599,11 +605,16 @@ test_case("tableDuplicate - 表去重", function()
     assert_equal(#result, 4, "tableDuplicate 去重后长度")
 end)
 
--- 29. 字符串转数组测试
-print("\n29. 字符串转数组测试")
-test_case("convertStringToArray - 字符串转数组", function()
-    local result = lion.convertStringToArray("a,b,c", ",")
-    assert_equal(#result, 3, "convertStringToArray 长度")
+-- 29. stringToArray 与 htmlEntitiesToUtf8 测试
+print("\n29. stringToArray 与 htmlEntitiesToUtf8 测试")
+test_case("stringToArray - 字符串转数组", function()
+    local result = lion.stringToArray("a,b,c", ",")
+    assert_equal(#result, 3, "stringToArray 长度")
+end)
+
+test_case("htmlEntitiesToUtf8 - HTML 数字实体转 UTF-8", function()
+    local result = lion.htmlEntitiesToUtf8("&#65;&#66;&#67;")
+    assert_equal(result, "ABC", "htmlEntitiesToUtf8 转换结果")
 end)
 
 -- 30. 检查符号测试
