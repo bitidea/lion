@@ -1,10 +1,10 @@
 # Lion
 
-一个功能强大的Lua工具库，提供 100+ 个实用函数，涵盖字符串处理、时间转换、表操作、URL处理、进制转换、数据库操作等多个领域。
+一个功能强大的 Lua 工具库，提供 100+ 个实用函数，涵盖字符串处理、时间转换、表操作、URL 处理、进制转换、数据库操作等多个领域。
 
 ## 特性
 
-- 🚀 **轻量级**: 纯Lua实现，无外部依赖
+- 🚀 **轻量级**: 纯 Lua 实现，无外部依赖
 - 📦 **功能丰富**: 100+ 个实用函数
 - 🧪 **测试完善**: 98 个单元测试，100% 通过率
 - 🌍 **跨平台**: 支持 Windows/Linux/macOS
@@ -88,7 +88,7 @@
 - `safeToNum(str)` - 安全转换为数字
 - `safeTableToNum(tab)` - 表安全转换为数字
 
-### 12. URL处理
+### 12. URL 处理
 - `urlEncode(s)` - URL 编码
 - `urlDecode(s)` - URL 解码
 - `tableToUrl(tab, split, symbol)` - 表转 URL 参数
@@ -101,7 +101,7 @@
 - `bubbleSort(tab, key)` - 冒泡排序
 - `antiBubbleSort(tab, key)` - 反向冒泡排序
 
-### 14. IP地址处理
+### 14. IP 地址处理
 - `getIpAddressInfo(ipAddress)` - 获取 IP 地址信息
 
 ### 15. 进制转换
@@ -129,7 +129,7 @@
 - `dbSafeCheck(sqlres)` - 数据库安全检查
 
 ### 18. Redis操作
-- `redisTableToLuaTable(res)` - Redis 表转 Lua表
+- `redisTableToLuaTable(res)` - Redis 表转 Lua 表
 - `redisTableToLuaTable2(res)` - Redis 表转 Lua 表（版本 2）
 
 ### 19. 文件操作
@@ -153,7 +153,7 @@
 - `isSuccess(successRate)` - 检查成功率
 - `makeWxSign(args, key)` - 生成微信签名
 - `getFakeRandomUserCode(userID)` - 生成伪随机用户码
-- `getUserIDByCode(code)` - 根据伪随机号推算userID
+- `getUserIDByCode(code)` - 根据伪随机号推算 userID
 
 ## 安装
 
