@@ -11,12 +11,44 @@ local lion = {}
 返回值 "***万"字符串
 ]]
 function lion.formatNumberToWan(num)
+    return lion.formatNumberToReadable(num, 10000, 0, { "", "万" })
+end
+
+--[[
+数字转人类可读单位
+参数 num 要转换的数字
+参数 unitLength 单位分割长度
+参数 decimalPlaces 保留小数位数
+参数 unitArray 单位文字数组
+返回值 格式化后的字符串
+]]
+function lion.formatNumberToReadable(num, unitLength, decimalPlaces, unitArray)
     num = tonumber(num) or 0
-    if num < 10000 then
-        return tostring(num)
+    unitLength = tonumber(unitLength) or 1000
+    decimalPlaces = tonumber(decimalPlaces) or 2
+    unitArray = unitArray or { "", "K", "M", "B", "T", "Q", "Qn" }
+
+    if num == 0 then
+        return "0" .. unitArray[1]
     end
-    num = math.floor(num / 10000)
-    return num .. "万"
+
+    local absNum = math.abs(num)
+    local unitIndex = 1
+
+    while absNum >= unitLength and unitIndex < #unitArray do
+        absNum = absNum / unitLength
+        unitIndex = unitIndex + 1
+    end
+
+    local result
+    if unitIndex == 1 then
+        result = tostring(absNum)
+    else
+        result = string.format("%." .. decimalPlaces .. "f", absNum)
+    end
+    result = result .. unitArray[unitIndex]
+
+    return result
 end
 
 --[[

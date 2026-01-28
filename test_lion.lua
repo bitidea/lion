@@ -56,9 +56,84 @@ test_case("formatNumberToWan - 大于10000", function()
     assert_equal(result, "1万", "formatNumberToWan 大于10000")
 end)
 
+test_case("formatNumberToWan - 大于10000000", function()
+    local result = lion.formatNumberToWan(12345678)
+    assert_equal(result, "1235万", "formatNumberToWan 大于10000000")
+end)
+
 test_case("formatNumberToWan - nil", function()
     local result = lion.formatNumberToWan(nil)
     assert_equal(result, "0", "formatNumberToWan nil")
+end)
+
+test_case("formatNumberToReadable - 默认参数小数值", function()
+    local result = lion.formatNumberToReadable(500)
+    assert_equal(result, "500", "formatNumberToReadable 默认参数小数值")
+end)
+
+test_case("formatNumberToReadable - 默认参数千级", function()
+    local result = lion.formatNumberToReadable(1500)
+    assert_equal(result, "1.50K", "formatNumberToReadable 默认参数千级")
+end)
+
+test_case("formatNumberToReadable - 默认参数百万级", function()
+    local result = lion.formatNumberToReadable(1500000)
+    assert_equal(result, "1.50M", "formatNumberToReadable 默认参数百万级")
+end)
+
+test_case("formatNumberToReadable - 默认参数十亿级", function()
+    local result = lion.formatNumberToReadable(2500000000)
+    assert_equal(result, "2.50B", "formatNumberToReadable 默认参数十亿级")
+end)
+
+test_case("formatNumberToReadable - 自定义单位长度1024", function()
+    local result = lion.formatNumberToReadable(1536, 1024, 2)
+    assert_equal(result, "1.50K", "formatNumberToReadable 自定义单位长度1024")
+end)
+
+test_case("formatNumberToReadable - 自定义小数位数1", function()
+    local result = lion.formatNumberToReadable(1500, 1000, 1)
+    assert_equal(result, "1.5K", "formatNumberToReadable 自定义小数位数1")
+end)
+
+test_case("formatNumberToReadable - 自定义小数位数0", function()
+    local result = lion.formatNumberToReadable(1500, 1000, 0)
+    assert_equal(result, "2K", "formatNumberToReadable 自定义小数位数0")
+end)
+
+test_case("formatNumberToReadable - 自定义单位数组", function()
+    local result = lion.formatNumberToReadable(1500, 1000, 2, { "", "KB", "MB", "GB" })
+    assert_equal(result, "1.50KB", "formatNumberToReadable 自定义单位数组")
+end)
+
+test_case("formatNumberToReadable - 自定义单位数组MB级", function()
+    local result = lion.formatNumberToReadable(1500000, 1000, 2, { "", "KB", "MB", "GB" })
+    assert_equal(result, "1.50MB", "formatNumberToReadable 自定义单位数组MB级")
+end)
+
+test_case("formatNumberToReadable - 零值", function()
+    local result = lion.formatNumberToReadable(0)
+    assert_equal(result, "0", "formatNumberToReadable 零值")
+end)
+
+test_case("formatNumberToReadable - nil值", function()
+    local result = lion.formatNumberToReadable(nil)
+    assert_equal(result, "0", "formatNumberToReadable nil值")
+end)
+
+test_case("formatNumberToReadable - 负数", function()
+    local result = lion.formatNumberToReadable(-1500)
+    assert_equal(result, "1.50K", "formatNumberToReadable 负数")
+end)
+
+test_case("formatNumberToReadable - 中文单位", function()
+    local result = lion.formatNumberToReadable(15000, 10000, 1, { "", "万", "亿" })
+    assert_equal(result, "1.5万", "formatNumberToReadable 中文单位")
+end)
+
+test_case("formatNumberToReadable - 中文单位亿级", function()
+    local result = lion.formatNumberToReadable(150000000, 10000, 1, { "", "万", "亿" })
+    assert_equal(result, "1.5亿", "formatNumberToReadable 中文单位亿级")
 end)
 
 -- 2. 字符串分割测试
